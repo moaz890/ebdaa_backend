@@ -10,30 +10,10 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
-const allowedOrigins = [
-  process.env.CLIENT_ORIGIN ? process.env.CLIENT_ORIGIN.replace(/\/$/, '') : null,
-  'http://localhost:3000',
-  'http://localhost:3001'
-].filter(Boolean);
-
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl, postman)
-    if (!origin) return callback(null, true);
-    
-    // Check if matches allowed origin list or is a Vercel preview app
-    const isAllowed = allowedOrigins.includes(origin) || origin.endsWith('.vercel.app');
-    
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      // In development fallback, in production reject
-      if (process.env.NODE_ENV !== 'production') {
-        callback(null, true);
-      } else {
-        callback(null, false);
-      }
-    }
+    // Dynamically reflect the incoming origin to guarantee CORS validation succeeds on all domains (including custom Vercel domains)
+    callback(null, origin || '*');
   },
   credentials: true,
 }));
