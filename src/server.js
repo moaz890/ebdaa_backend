@@ -1,8 +1,8 @@
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
 require('dotenv').config();
 
+const connectDB = require('./lib/db');
 const leadsRoutes = require('./routes/leads');
 const authRoutes = require('./routes/auth');
 
@@ -18,6 +18,17 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+
+// Ensure MongoDB is connected before handling API requests (required on Vercel serverless)
+app.use('/api', async (_req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('[DB]', err.message);
+    res.status(500).json({ success: false, message: 'خطأ في الاتصال بقاعدة البيانات' });
+  }
+});
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/leads', leadsRoutes);
@@ -42,19 +53,6 @@ app.use((err, _req, res, _next) => {
 });
 
 // ─── Connect to MongoDB + Start server ────────────────────────────────────────
-if (process.env.MONGO_URI) {
-  mongoose
-    .connect(process.env.MONGO_URI)
-    .then(() => {
-      console.log('✅ Connected to MongoDB');
-    })
-    .catch((err) => {
-      console.error('❌ MongoDB connection failed:', err.message);
-    });
-} else {
-  console.error('❌ MongoDB connection failed: MONGO_URI environment variable is missing');
-}
-
 // Only start Express listener if running locally (not in serverless production)
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   app.listen(PORT, () => {

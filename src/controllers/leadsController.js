@@ -121,7 +121,7 @@ async function updateLead(req, res) {
     const lead = await Lead.findByIdAndUpdate(
       req.params.id,
       { status },
-      { new: true, runValidators: true }
+      { new: true, runValidators: false }
     );
 
     if (!lead) {
