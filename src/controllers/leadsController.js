@@ -6,9 +6,29 @@ const Lead = require('../models/Lead');
  */
 async function createLead(req, res) {
   try {
-    const { fullName, phone, isQualified, state } = req.body;
+    const {
+      fullName,
+      phone,
+      isQualified,
+      state,
+      monthlySalary,
+      monthlyObligations,
+      hasRealEstateLoan,
+      workSector,
+      serviceDuration,
+    } = req.body;
 
-    const lead = await Lead.create({ fullName, phone, isQualified, state });
+    const lead = await Lead.create({
+      fullName,
+      phone,
+      isQualified,
+      state,
+      monthlySalary,
+      monthlyObligations,
+      hasRealEstateLoan,
+      workSector,
+      serviceDuration,
+    });
 
     res.status(201).json({
       success: true,

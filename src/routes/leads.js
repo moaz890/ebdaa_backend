@@ -31,6 +31,30 @@ const leadValidationRules = [
   body('state')
     .trim()
     .isIn(['citizen', 'resident']).withMessage('يرجى تحديد ما إذا كنت مواطناً أو مقيماً'),
+
+  body('monthlySalary')
+    .notEmpty().withMessage('الراتب الشهري مطلوب')
+    .isFloat({ min: 0 }).withMessage('الراتب الشهري يجب أن يكون رقماً موجباً')
+    .toFloat(),
+
+  body('monthlyObligations')
+    .notEmpty().withMessage('الالتزامات الشهرية مطلوبة')
+    .isFloat({ min: 0 }).withMessage('الالتزامات الشهرية يجب أن تكون رقماً موجباً')
+    .toFloat(),
+
+  body('hasRealEstateLoan')
+    .isBoolean().withMessage('يرجى تحديد وجود قرض عقاري')
+    .toBoolean(),
+
+  body('workSector')
+    .trim()
+    .isIn(['government', 'private_company', 'private_establishment', 'retired'])
+    .withMessage('يرجى تحديد قطاع العمل'),
+
+  body('serviceDuration')
+    .trim()
+    .isIn(['less_than_3_months', 'more_than_3_months'])
+    .withMessage('يرجى تحديد مدة الخدمة'),
 ];
 
 // Middleware: collect express-validator errors and respond

@@ -27,6 +27,36 @@ const leadSchema = new mongoose.Schema(
       },
       required: [true, 'يرجى تحديد الحالة'],
     },
+    monthlySalary: {
+      type: Number,
+      required: [true, 'الراتب الشهري مطلوب'],
+      min: [0, 'الراتب الشهري يجب أن يكون رقماً موجباً'],
+    },
+    monthlyObligations: {
+      type: Number,
+      required: [true, 'الالتزامات الشهرية مطلوبة'],
+      min: [0, 'الالتزامات الشهرية يجب أن تكون رقماً موجباً'],
+    },
+    hasRealEstateLoan: {
+      type: Boolean,
+      required: [true, 'يرجى تحديد وجود قرض عقاري'],
+    },
+    workSector: {
+      type: String,
+      enum: {
+        values: ['government', 'private_company', 'private_establishment', 'retired'],
+        message: 'يرجى تحديد قطاع العمل',
+      },
+      required: [true, 'يرجى تحديد قطاع العمل'],
+    },
+    serviceDuration: {
+      type: String,
+      enum: {
+        values: ['less_than_3_months', 'more_than_3_months'],
+        message: 'يرجى تحديد مدة الخدمة',
+      },
+      required: [true, 'يرجى تحديد مدة الخدمة'],
+    },
     status: {
       type: String,
       enum: ['new', 'contacted', 'closed'],
