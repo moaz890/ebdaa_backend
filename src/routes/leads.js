@@ -1,0 +1,59 @@
+const express = require('express');
+const { body, validationResult } = require('express-validator');
+const router = express.Router();
+
+const authMiddleware = require('../middleware/authMiddleware');
+const {
+  createLead,
+  getLeads,
+  updateLead,
+  deleteLead,
+} = require('../controllers/leadsController');
+
+// ─── Validation rules for POST /api/leads ────────────────────────────────────
+const leadValidationRules = [
+  body('fullName')
+    .trim()
+    .notEmpty().withMessage('الاسم الثلاثي مطلوب')
+    .isLength({ min: 3, max: 100 }).withMessage('الاسم يجب أن يكون بين 3 و 100 حرف'),
+
+  body('phone')
+    .trim()
+    .notEmpty().withMessage('رقم الجوال مطلوب')
+    .customSanitizer((val) => val.replace(/[\s-]/g, ''))
+    .matches(/^\d{9,10}$/)
+    .withMessage('يرجى إدخال رقم جوال صحيح يتكون من 9 أو 10 أرقام'),
+
+  body('isQualified')
+    .isBoolean().withMessage('يرجى تحديد العمر')
+    .toBoolean(),
+
+  body('state')
+    .trim()
+    .isIn(['citizen', 'resident']).withMessage('يرجى تحديد ما إذا كنت مواطناً أو مقيماً'),
+];
+
+// Middleware: collect express-validator errors and respond
+function validateRequest(req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      success: false,
+      message: 'يرجى التحقق من البيانات المدخلة',
+      errors: errors.array().map((e) => ({ field: e.path, message: e.msg })),
+    });
+  }
+  next();
+}
+
+// ─── Routes ───────────────────────────────────────────────────────────────────
+
+// Public
+router.post('/', leadValidationRules, validateRequest, createLead);
+
+// Protected (admin only)
+router.get('/',          authMiddleware, getLeads);
+router.patch('/:id',     authMiddleware, updateLead);
+router.delete('/:id',    authMiddleware, deleteLead);
+
+module.exports = router;
