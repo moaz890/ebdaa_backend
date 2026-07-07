@@ -5,6 +5,7 @@ require('dotenv').config();
 const connectDB = require('./lib/db');
 const leadsRoutes = require('./routes/leads');
 const authRoutes = require('./routes/auth');
+const contentRoutes = require('./routes/content');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -33,6 +34,7 @@ app.use('/api', async (_req, res, next) => {
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/leads', leadsRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/content', contentRoutes);
 
 // ─── Health check & Welcome ───────────────────────────────────────────────────
 app.get('/', (_req, res) => {
