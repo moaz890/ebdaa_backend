@@ -1,6 +1,7 @@
 const SiteContent = require('../models/SiteContent');
 const { DEFAULT_SITE_CONTENT } = require('../data/contentDefaults');
 const { seedContent, SITE_CONTENT_ID } = require('../lib/seedContent');
+const { uploadImageBuffer, MAX_WIDTH_BY_TYPE } = require('../lib/cloudinary');
 
 const VALID_SECTIONS = [
   'hero',
@@ -206,11 +207,79 @@ async function seedContentHandler(req, res) {
   }
 }
 
+// ─── POST /api/content/upload ─────────────────────────────────────────────────
+/**
+ * Protected — upload image to Cloudinary, returns optimized secure_url.
+ * multipart field: file. Optional body/query: type = hero|logo|feature|shop
+ */
+async function uploadContentImage(req, res) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'لم يتم اختيار ملف' });
+    }
+
+    const type = String(req.body?.type || req.query?.type || 'hero');
+    if (!MAX_WIDTH_BY_TYPE[type]) {
+      return res.status(400).json({
+        success: false,
+        message: `نوع الصورة غير صالح. الأنواع المسموحة: ${Object.keys(MAX_WIDTH_BY_TYPE).join(', ')}`,
+      });
+    }
+
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/octet-stream'];
+    const ext = (req.file.originalname || '').toLowerCase();
+    const hasImageExt = /\.(jpe?g|png|webp|gif)$/.test(ext);
+    if (!allowed.includes(req.file.mimetype) && !hasImageExt) {
+      return res.status(422).json({
+        success: false,
+        message: 'نوع الملف غير مدعوم — استخدم JPG أو PNG أو WebP',
+      });
+    }
+
+    const maxSize = 10 * 1024 * 1024;
+    if (req.file.size > maxSize) {
+      return res.status(422).json({
+        success: false,
+        message: 'حجم الملف كبير جداً — الحد الأقصى 10 ميجابايت',
+      });
+    }
+
+    const result = await uploadImageBuffer(req.file.buffer, { type });
+
+    res.json({
+      success: true,
+      message: 'تم رفع الصورة بنجاح',
+      data: { url: result.secure_url },
+    });
+  } catch (err) {
+    if (err.status) {
+      return res.status(err.status).json({ success: false, message: err.message });
+    }
+    if (err.http_code === 401) {
+      return res.status(503).json({
+        success: false,
+        message: 'إعدادات Cloudinary غير صحيحة — تحقق من CLOUDINARY_CLOUD_NAME و API keys',
+      });
+    }
+    if (err.http_code === 403 || err.status === 503) {
+      return res.status(503).json({
+        success: false,
+        message:
+          err.message ||
+          'مفتاح Cloudinary لا يملك صلاحية الرفع — أنشئ Upload Preset غير موقّع وأضف CLOUDINARY_UPLOAD_PRESET',
+      });
+    }
+    console.error('[content/upload]', err.cause || err);
+    res.status(500).json({ success: false, message: 'فشل رفع الصورة' });
+  }
+}
+
 module.exports = {
   getContent,
   getAdminContent,
   updateContent,
   seedContentHandler,
+  uploadContentImage,
   VALID_SECTIONS,
   FORM_LABEL_KEYS,
 };

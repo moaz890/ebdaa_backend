@@ -117,6 +117,7 @@ const testimonialSchema = new mongoose.Schema(
     rating: { type: Number, min: 1, max: 5, required: true },
     monthsAgo: { type: Number, min: 0, required: true },
     order: { type: Number, min: 0, required: true },
+    avatarUrl: { type: String, required: false, default: '' },
   },
   { _id: false }
 );

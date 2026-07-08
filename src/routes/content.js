@@ -1,4 +1,5 @@
 const express = require('express');
+const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 const router = express.Router();
 
@@ -8,9 +9,15 @@ const {
   getAdminContent,
   updateContent,
   seedContentHandler,
+  uploadContentImage,
   VALID_SECTIONS,
   FORM_LABEL_KEYS,
 } = require('../controllers/contentController');
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
 
 function validateRequest(req, res, next) {
   const errors = validationResult(req);
@@ -154,5 +161,6 @@ router.get('/', getContent);
 router.get('/admin', authMiddleware, getAdminContent);
 router.put('/', authMiddleware, updateValidationRules, validateRequest, validateSectionPayload, updateContent);
 router.post('/seed', authMiddleware, seedContentHandler);
+router.post('/upload', authMiddleware, upload.single('file'), uploadContentImage);
 
 module.exports = router;
