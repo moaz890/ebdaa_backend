@@ -135,6 +135,16 @@ function validateSectionPayload(req, res, next) {
         break;
       }
 
+      case 'successPage': {
+        if (data.whatsapp && !/^\d{10,15}$/.test(String(data.whatsapp))) {
+          return res.status(422).json({
+            success: false,
+            message: 'رقم واتساب صفحة النجاح يجب أن يكون أرقاماً فقط (10–15 رقم)',
+          });
+        }
+        break;
+      }
+
       default:
         break;
     }

@@ -162,6 +162,7 @@ const successPageSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     subtitle: { type: String, required: true },
+    whatsapp: { type: String, required: true },
     whatsappMessage: { type: String, required: true },
   },
   { _id: false }

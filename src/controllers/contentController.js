@@ -23,15 +23,30 @@ const FORM_LABEL_KEYS = Object.keys(DEFAULT_SITE_CONTENT.formLabels);
  */
 function mergeWithDefaults(doc) {
   const merged = JSON.parse(JSON.stringify(DEFAULT_SITE_CONTENT));
-
   if (!doc) return merged;
 
-  for (const key of Object.keys(merged)) {
-    if (key === '_id') continue;
-    if (doc[key] !== undefined && doc[key] !== null) {
-      merged[key] = doc[key];
+  function deepMergeInto(target, source) {
+    for (const key of Object.keys(source)) {
+      if (key === '_id' || key === '__v') continue;
+      const value = source[key];
+      if (value === undefined || value === null) continue;
+
+      if (
+        typeof value === 'object' &&
+        !Array.isArray(value) &&
+        target[key] &&
+        typeof target[key] === 'object' &&
+        !Array.isArray(target[key])
+      ) {
+        deepMergeInto(target[key], value);
+        continue;
+      }
+
+      target[key] = value;
     }
   }
+
+  deepMergeInto(merged, doc);
 
   if (doc.updatedAt) {
     merged.updatedAt = doc.updatedAt;
